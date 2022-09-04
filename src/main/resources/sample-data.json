@@ -1,0 +1,21 @@
+{
+  "trafficMeasurements": [
+    {
+      "measurementTime": 83452,
+      "measurements": [
+        {
+          "startAvenue": "A",
+          "startStreet": "1",
+          "transitTime": 59.57363899660943,
+          "endAvenue": "A",
+          "endStreet": "2"
+        },
+        {
+          "startAvenue": "A",
+          "startStreet": "2",
+          "transitTime": 40.753916740023314,
+          "endAvenue": "A",
+          "endStreet": "3"
+        }
+      ]
+    }]}
