@@ -7,7 +7,7 @@ import org.topl.traffic.protocol.models.generators._
 
 class TrafficDataSpec extends AnyFlatSpec with should.Matchers {
   "TrafficData" should "generate models from json" in {
-    forSingleInstance(trafficDataJsonSample) { json =>
+    forSingleInstance(trafficDataJsonSampleGen) { json =>
       TrafficData.fromJson(json) should be(
         Right(
           TrafficData(trafficMeasurements =

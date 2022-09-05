@@ -1,13 +1,9 @@
 package org.topl.traffic.protocol.models
 
-import cats.Monad
 import derevo.circe.{decoder, encoder}
 import derevo.derive
-import fs2.{Chunk, Pipe}
 import io.circe.Decoder.Result
 import io.circe.Json
-import org.topl.traffic.streaming.CompileStream
-
 /*
    trafficMeasurements:
       Array<{measurementTime: Long?,

@@ -17,7 +17,7 @@ object generators {
   def trafficMeasurementGen: Gen[TrafficMeasurements] = ???
   def trafficDataGen: Gen[TrafficData]                = ???
 
-  def trafficDataJsonSample: Gen[Json] =
+  def trafficDataJsonSampleGen: Gen[Json] =
     Gen.const(
       Json.obj(
         "trafficMeasurements" -> Json.arr(
