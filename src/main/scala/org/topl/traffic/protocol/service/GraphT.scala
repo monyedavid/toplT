@@ -1,4 +1,4 @@
-package org.topl.traffic.protocol
+package org.topl.traffic.protocol.service
 
 import cats.Monad
 import fs2.{Chunk, Pipe, Stream}
@@ -17,6 +17,7 @@ import org.topl.traffic.streaming.CompileStream
 import tofu.syntax.monadic._
 import tofu.syntax.streams.compile._
 
+// Transform: TrafficData => Graph[InterSection]
 object GraphT {
 
   def toGraph[F[_]: Monad: CompileStream](
@@ -29,8 +30,7 @@ object GraphT {
       graph.addEdge(point.source, WeightedEdge(point.destination, avgT))
     }
 
-  // return List of avg transitTime measurements => Convert to Graph[Intersection]
-  def avgMeasurements[F[_]: Monad: CompileStream](
+  private def avgMeasurements[F[_]: Monad: CompileStream](
     trafficMeasurements: List[TrafficMeasurements],
     chunkSize: Int
   ): F[List[(Point, Double)]] =
@@ -43,7 +43,7 @@ object GraphT {
              .to[List]
     } yield o
 
-  def collectPointTransitTimes[F[_]: Monad: CompileStream](
+  private def collectPointTransitTimes[F[_]: Monad: CompileStream](
     trafficMeasurements: List[TrafficMeasurements],
     chunkSize: Int
   ): F[List[(Point, List[Double])]] =
@@ -59,14 +59,14 @@ object GraphT {
       .to[List]
       .map(_.flatten)
 
-  def asTupleS[F[_]: Monad: CompileStream]: Pipe[F, Chunk[TrafficMeasurements], (Point, Double)] =
+  private def asTupleS[F[_]: Monad: CompileStream]: Pipe[F, Chunk[TrafficMeasurements], (Point, Double)] =
     for {
       chunk <- _
       chunkL = chunk.map(_.measurements).toList.flatten
       o <- Stream.emits(chunkL.map(Measurement.asTuple))
     } yield o
 
-  def asAvgS[F[_]: Monad: CompileStream]: Pipe[F, Chunk[(Point, List[Double])], (Point, Double)] =
+  private def asAvgS[F[_]: Monad: CompileStream]: Pipe[F, Chunk[(Point, List[Double])], (Point, Double)] =
     for {
       chunk <- _
       chunkL = chunk.map { case (p, l) => (p, l.sum / l.length) }.toList
