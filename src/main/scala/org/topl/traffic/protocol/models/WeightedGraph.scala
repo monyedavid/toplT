@@ -1,11 +1,11 @@
 package org.topl.traffic.protocol.models
 
-class WeightedGraph[V](adjacencyList: Map[V, List[WeightedEdge[V]]]) extends Graph[V] {
+case class WeightedGraph[V](adjacencyList: Map[V, List[WeightedEdge[V]]]) extends Graph[V] {
   override def vertices: List[V] = adjacencyList.keys.toList
 
-  override def edges: List[(source, destination)] = adjacencyList.flatMap { case (v, edgeList) =>
+  override def edges: List[(source, destination)] = adjacencyList.toList.flatMap { case (v, edgeList) =>
     edgeList.map(edge => (v, edge.destination))
-  }.toList
+  }
 
   def addEdge(a: V, weightedEdge: WeightedEdge[V]): WeightedGraph[V] = {
     val aNeighbours = weightedEdge +: adjacencyList.getOrElse(a, List())

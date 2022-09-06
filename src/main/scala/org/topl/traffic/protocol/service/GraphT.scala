@@ -17,60 +17,66 @@ import org.topl.traffic.streaming.CompileStream
 import tofu.syntax.monadic._
 import tofu.syntax.streams.compile._
 
+trait GraphT[F[_]] {
+
+  def mkGraph(trafficData: TrafficData, settings: ServiceSettings): F[WeightedGraph[Intersection]]
+}
+
 // Transform: TrafficData => Graph[InterSection]
 object GraphT {
 
-  def toGraph[F[_]: Monad: CompileStream](
-    trafficData: TrafficData,
-    settings: ServiceSettings
-  ): F[WeightedGraph[Intersection]] =
-    for {
-      avgM <- avgMeasurements(trafficData.trafficMeasurements, settings.chunkSize)
-    } yield avgM.foldLeft(Graph[Intersection]()) { case (graph, (point, avgT)) =>
-      graph.addEdge(point.source, WeightedEdge(point.destination, avgT))
-    }
+  def apply[F[_]: Monad: CompileStream]: GraphT[F] = new GraphT[F] {
 
-  private def avgMeasurements[F[_]: Monad: CompileStream](
-    trafficMeasurements: List[TrafficMeasurements],
-    chunkSize: Int
-  ): F[List[(Point, Double)]] =
-    for {
-      ptt <- collectPointTransitTimes(trafficMeasurements, chunkSize)
-      o <- Stream
-             .emits[F, (Point, List[Double])](ptt)
-             .chunkN(chunkSize)
-             .through(asAvgS)
-             .to[List]
-    } yield o
+    private def avgMeasurements(
+      trafficMeasurements: List[TrafficMeasurements],
+      chunkSize: Int
+    ): F[List[(Point, Double)]] =
+      for {
+        ptt <- collectPointTransitTimes(trafficMeasurements, chunkSize)
+        o <- Stream
+               .emits[F, (Point, List[Double])](ptt)
+               .chunkN(chunkSize)
+               .through(asAvgS)
+               .to[List]
+      } yield o
 
-  private def collectPointTransitTimes[F[_]: Monad: CompileStream](
-    trafficMeasurements: List[TrafficMeasurements],
-    chunkSize: Int
-  ): F[List[(Point, List[Double])]] =
-    Stream
-      .emits[F, TrafficMeasurements](trafficMeasurements)
-      .chunkN(chunkSize)
-      .through(asTupleS)
-      .fold(Map[Point, List[Double]]()) { (m, t) =>
-        val p = m.getOrElse(t._1, List.empty)
-        m + (t._1 -> (t._2 :: p))
+    private def collectPointTransitTimes(
+      trafficMeasurements: List[TrafficMeasurements],
+      chunkSize: Int
+    ): F[List[(Point, List[Double])]] =
+      Stream
+        .emits[F, TrafficMeasurements](trafficMeasurements)
+        .chunkN(chunkSize)
+        .through(asTupleS)
+        .fold(Map[Point, List[Double]]()) { (m, t) =>
+          val p = m.getOrElse(t._1, List.empty)
+          m + (t._1 -> (t._2 :: p))
+        }
+        .map(_.toList)
+        .to[List]
+        .map(_.flatten)
+
+    private def asTupleS: Pipe[F, Chunk[TrafficMeasurements], (Point, Double)] =
+      for {
+        chunk <- _
+        chunkL = chunk.map(_.measurements).toList.flatten
+        o <- Stream.emits(chunkL.map(Measurement.asTuple))
+      } yield o
+
+    private def asAvgS: Pipe[F, Chunk[(Point, List[Double])], (Point, Double)] =
+      for {
+        chunk <- _
+        chunkL = chunk.map { case (p, l) => (p, l.sum / l.length) }.toList
+        o <- Stream.emits(chunkL)
+      } yield o
+
+    override def mkGraph(trafficData: TrafficData, settings: ServiceSettings): F[WeightedGraph[Intersection]] =
+      for {
+        avgM <- avgMeasurements(trafficData.trafficMeasurements, settings.chunkSize)
+      } yield avgM.foldLeft(Graph[Intersection]()) { case (graph, (point, avgT)) =>
+        graph.addEdge(point.source, WeightedEdge(point.destination, avgT))
       }
-      .map(_.toList)
-      .to[List]
-      .map(_.flatten)
 
-  private def asTupleS[F[_]: Monad: CompileStream]: Pipe[F, Chunk[TrafficMeasurements], (Point, Double)] =
-    for {
-      chunk <- _
-      chunkL = chunk.map(_.measurements).toList.flatten
-      o <- Stream.emits(chunkL.map(Measurement.asTuple))
-    } yield o
-
-  private def asAvgS[F[_]: Monad: CompileStream]: Pipe[F, Chunk[(Point, List[Double])], (Point, Double)] =
-    for {
-      chunk <- _
-      chunkL = chunk.map { case (p, l) => (p, l.sum / l.length) }.toList
-      o <- Stream.emits(chunkL)
-    } yield o
+  }
 
 }
