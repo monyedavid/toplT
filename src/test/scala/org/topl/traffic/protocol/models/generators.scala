@@ -14,8 +14,101 @@ object generators {
       endStreet   <- Gen.alphaLowerStr
     } yield Measurement(startAvenue, startStreet, transitTime, endAvenue, endStreet)
 
-  def trafficMeasurementGen: Gen[TrafficMeasurements] = ???
-  def trafficDataGen: Gen[TrafficData]                = ???
+  def trafficMeasurementGen(length: Int): Gen[TrafficMeasurements] =
+    for {
+      measurements    <- Gen.listOfN(length, measurementGen)
+      measurementTime <- Gen.posNum[Long]
+    } yield TrafficMeasurements(measurementTime, measurements)
+
+  def trafficDataGen(length: Int): Gen[TrafficData] =
+    for {
+      trafficMeasurements <- Gen.listOfN(length, trafficMeasurementGen(length))
+    } yield TrafficData(trafficMeasurements)
+
+  def trafficDataConstGen: Gen[TrafficData] = Gen.const(
+    TrafficData(trafficMeasurements =
+      List(
+        TrafficMeasurements(
+          measurementTime = 86544,
+          measurements = List(
+            Measurement(
+              startAvenue = "A",
+              startStreet = "1",
+              transitTime = 28,
+              endAvenue   = "B",
+              endStreet   = "1"
+            ),
+            Measurement(
+              startAvenue = "A",
+              startStreet = "2",
+              transitTime = 59,
+              endAvenue   = "A",
+              endStreet   = "1"
+            ),
+            Measurement(
+              startAvenue = "A",
+              startStreet = "2",
+              transitTime = 50,
+              endAvenue   = "B",
+              endStreet   = "2"
+            )
+          )
+        ),
+        TrafficMeasurements(
+          measurementTime = 86544,
+          measurements = List(
+            Measurement(
+              startAvenue = "A",
+              startStreet = "1",
+              transitTime = 28,
+              endAvenue   = "B",
+              endStreet   = "1"
+            ),
+            Measurement(
+              startAvenue = "A",
+              startStreet = "2",
+              transitTime = 59,
+              endAvenue   = "A",
+              endStreet   = "1"
+            ),
+            Measurement(
+              startAvenue = "A",
+              startStreet = "2",
+              transitTime = 50,
+              endAvenue   = "B",
+              endStreet   = "2"
+            )
+          )
+        ),
+        TrafficMeasurements(
+          measurementTime = 86544,
+          measurements = List(
+            Measurement(
+              startAvenue = "A",
+              startStreet = "1",
+              transitTime = 28,
+              endAvenue   = "B",
+              endStreet   = "1"
+            ),
+            Measurement(
+              startAvenue = "A",
+              startStreet = "2",
+              transitTime = 59,
+              endAvenue   = "A",
+              endStreet   = "1"
+            ),
+            Measurement(
+              startAvenue = "A",
+              startStreet = "2",
+              transitTime = 50,
+              endAvenue   = "B",
+              endStreet   = "2"
+            )
+          )
+        )
+      )
+    )
+  )
 
   def trafficDataJsonSampleGen: Gen[Json] =
     Gen.const(
