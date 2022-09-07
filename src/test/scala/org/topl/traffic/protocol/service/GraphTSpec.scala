@@ -46,7 +46,7 @@ class GraphTSpec extends AnyFlatSpec with should.Matchers with TryValues with Pr
   it should "correctly collect point's transit times" in {
     val collectPointTransitTimes = PrivateMethod[IO[List[(Point, List[Double])]]]('collectPointTransitTimes)
     withResources[IO]
-      .use { case ServiceSettings(chunkSize) =>
+      .use { case ServiceSettings(chunkSize, _) =>
         forSingleInstance(trafficDataConstGen) { td =>
           val gT  = GraphT[IO]
           val ptt = (gT invokePrivate collectPointTransitTimes(td.trafficMeasurements, chunkSize)).unsafeRunSync()
@@ -67,7 +67,7 @@ class GraphTSpec extends AnyFlatSpec with should.Matchers with TryValues with Pr
   it should "correctly return average measurement" in {
     val avgMeasurements = PrivateMethod[IO[List[(Point, Double)]]]('avgMeasurements)
     withResources[IO]
-      .use { case ServiceSettings(chunkSize) =>
+      .use { case ServiceSettings(chunkSize, _) =>
         forSingleInstance(trafficDataConstGen) { td =>
           val gT       = GraphT[IO]
           val averages = (gT invokePrivate avgMeasurements(td.trafficMeasurements, chunkSize)).unsafeRunSync()
@@ -92,6 +92,6 @@ object GraphTSpec {
 
   def withResources[F[_]: Monad] =
     for {
-      settings <- Resource.eval(ServiceSettings(chunkSize = 10).pure[F])
+      settings <- Resource.eval(ServiceSettings(chunkSize = 10, pathChunkSize = 1).pure[F])
     } yield settings
 }

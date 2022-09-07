@@ -17,12 +17,12 @@ import org.topl.traffic.streaming.CompileStream
 import tofu.syntax.monadic._
 import tofu.syntax.streams.compile._
 
+// Transform: TrafficData => Graph[InterSection]
 trait GraphT[F[_]] {
 
   def mkGraph(trafficData: TrafficData, settings: ServiceSettings): F[WeightedGraph[Intersection]]
 }
 
-// Transform: TrafficData => Graph[InterSection]
 object GraphT {
 
   def apply[F[_]: Monad: CompileStream]: GraphT[F] = new GraphT[F] {

@@ -9,6 +9,7 @@ import org.topl.traffic.protocol.parsers.{JsonSourceParser, PointParser}
 import org.topl.traffic.protocol.models.{Intersection, State}
 import org.topl.traffic.protocol.reader.JsonReader
 import org.topl.traffic.settings.AppSettings
+import org.topl.traffic.streaming.CompileStream
 
 import scala.io.BufferedSource
 import scala.util.Try
@@ -38,9 +39,13 @@ object Execute {
       point       <- EitherT.fromEither(PointParser[Either[Throwable, *]].fromString(pointS))
       jSource     <- EitherT.fromEither(JsonSourceParser[Either[Throwable, *]].fromString(sourceS))
       trafficData <- EitherT(JsonReader[F, Either[Throwable, *]](jSource, client, getFile).read)
+      // tData -> Graph[InterSection]
+      // get vertices in graph:
+      // for each vertex in vertices find shortest path to all nodes
+      // update state :)
     } yield ???
 
-  def executeCommands[F[_]: ConcurrentEffect: Monad](
+  def executeCommands[F[_]: ConcurrentEffect: Monad: CompileStream](
     command: Command,
     client: Client[F],
     getFile: F[String => BufferedSource],
