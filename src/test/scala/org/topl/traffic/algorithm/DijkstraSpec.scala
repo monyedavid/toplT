@@ -1,13 +1,12 @@
 package org.topl.traffic.algorithm
 
-import org.scalatest.{PrivateMethodTester, TryValues}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import org.topl.traffic.commonGenerators.forSingleInstance
 import org.topl.traffic.protocol.models.Intersection
 import org.topl.traffic.protocol.models.generators.testGraphGen
 
-class DijkstraSpec extends AnyFlatSpec with should.Matchers with TryValues with PrivateMethodTester {
+class DijkstraSpec extends AnyFlatSpec with should.Matchers {
   "Dijkstra" should "correctly generate shortest path from source node to all nodes in a graph" in {
     import Intersection._
     forSingleInstance(testGraphGen) { tG =>

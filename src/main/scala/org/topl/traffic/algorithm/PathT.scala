@@ -28,20 +28,20 @@ object PathT {
     ): F[Map[Point, List[Intersection]]] =
       for {
         sSteps <- collectShortStep(graph, settings.pathChunkSize)
-        sPaths <- buildShortestPaths(sSteps, graph.vertices, settings.pathChunkSize / 2) // g.e?
+        sPaths <- buildShortestPaths(sSteps, graph.nodes, settings.pathChunkSize / 2) // g.e?
       } yield sPaths
 
-    def collectShortStep(
+    private def collectShortStep(
       graph: WeightedGraph[Intersection],
       pathChunkSize: Int
     ): F[List[(SourceNode, ShortStep[Intersection])]] =
       Stream
-        .emits[F, Intersection](graph.vertices)
+        .emits[F, Intersection](graph.nodes)
         .chunkN(pathChunkSize)
         .through(mkShortStep(graph))
         .to[List]
 
-    def mkShortStep(
+    private def mkShortStep(
       graph: WeightedGraph[Intersection]
     ): Pipe[F, Chunk[SourceNode], (SourceNode, ShortStep[Intersection])] =
       for {
@@ -55,7 +55,7 @@ object PathT {
              })
       } yield o
 
-    def buildShortestPaths(
+    private def buildShortestPaths(
       sSteps: List[(SourceNode, ShortStep[Intersection])],
       nodes: List[Intersection],
       pathChunkSize: Int
@@ -67,7 +67,7 @@ object PathT {
         .to[List]
         .map(_.toMap)
 
-    def mkShortPath(
+    private def mkShortPath(
       nodes: List[Intersection]
     ): Pipe[F, Chunk[(SourceNode, ShortStep[Intersection])], (Point, List[Intersection])] =
       for {
@@ -76,7 +76,7 @@ object PathT {
         o <- Stream.emits(chunkL.flatMap { case (sn, ss) => buildShortestPathFromStartNode(ss, nodes, sn) })
       } yield o
 
-    def buildShortestPathFromStartNode(
+    private def buildShortestPathFromStartNode(
       shortStep: ShortStep[Intersection],
       nodes: List[Intersection],
       sourceNode: SourceNode

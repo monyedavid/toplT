@@ -167,4 +167,6 @@ object generators {
       .addEdge("K2".fromStringUnsafe, WeightedEdge("D2".fromStringUnsafe, 90))
   )
 
+  def emptyGraphGen: Gen[WeightedGraph[Intersection]] = Gen.const(Graph[Intersection]())
+
 }

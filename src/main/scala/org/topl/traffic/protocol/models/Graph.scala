@@ -12,6 +12,8 @@ trait Graph[V] {
   def addEdge(a: V, b: V): Graph[V]
 
   def neighbours(vertex: V): adList
+
+  def nodes: List[V] = vertices.flatMap(vertex => vertex :: neighbours(vertex)).distinct
 }
 
 object Graph {
