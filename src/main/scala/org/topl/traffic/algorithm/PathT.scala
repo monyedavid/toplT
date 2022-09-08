@@ -17,10 +17,10 @@ object PathT {
 
   type SourceNode = Intersection
 
-  def apply[F[_]: Monad: CompileStream]: PathT[F, Intersection, Point] = new PathT[F, Intersection, Point] {
+  def extractSPaths(node: Intersection, parents: Map[Intersection, Intersection]): List[Intersection] =
+    parents.get(node).map(p => node +: extractSPaths(p, parents)).getOrElse(List(node))
 
-    def extractSPaths(node: Intersection, parents: Map[Intersection, Intersection]): List[Intersection] =
-      parents.get(node).map(p => node +: extractSPaths(p, parents)).getOrElse(List(node))
+  def apply[F[_]: Monad: CompileStream]: PathT[F, Intersection, Point] = new PathT[F, Intersection, Point] {
 
     override def findShortestPath(
       graph: WeightedGraph[Intersection],
