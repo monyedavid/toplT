@@ -6,3 +6,7 @@
 
 ## Note:
 Enter default path in `src/resource/application.conf`
+
+## Sample:
+
+![01](images/01.png)
