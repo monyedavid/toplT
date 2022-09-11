@@ -8,6 +8,8 @@ import org.topl.traffic.streaming.CompileStream
 import tofu.syntax.monadic._
 import tofu.syntax.streams.compile._
 
+import scala.annotation.tailrec
+
 // Transforms: Graph[InterSection] => shortest-path map for all vertices in graph
 trait PathT[F[_], V, W] {
   def findShortestPath(graph: WeightedGraph[V], settings: ServiceSettings): F[Map[W, List[V]]]
@@ -17,8 +19,29 @@ object PathT {
 
   type SourceNode = Intersection
 
-  def extractSPaths(node: Intersection, parents: Map[Intersection, Intersection]): List[Intersection] =
-    parents.get(node).map(p => node +: extractSPaths(p, parents)).getOrElse(List(node))
+  // TODO: MAKE TAIL RECURSIVE
+  // TODO: Handle errors that occur in extracting shortestPath :)
+  //                extractSPaths: {destinationNode} -> {SourceNode}
+  //                - if there is no link between a destinationNode and a possible parentNode; end operation { return an empty List() }
+  //                      - end operation when parentNode == SourceNode :) ☑️
+
+  @tailrec
+  final def extractSPathsTRec[V](
+    primeSourceNode: V,
+    previousParent: V,
+    destinationNode: V,
+    parents: Map[V, V],
+    acc: List[V] = List()
+  ): List[V] =
+    if (destinationNode == primeSourceNode) primeSourceNode :: acc
+    else {
+      parents.get(destinationNode) match {
+        case Some(node) =>
+          if (previousParent == node) List.empty
+          else extractSPathsTRec(primeSourceNode, destinationNode, node, parents, destinationNode :: acc)
+        case None => List()
+      }
+    }
 
   def apply[F[_]: Monad: CompileStream]: PathT[F, Intersection, Point] = new PathT[F, Intersection, Point] {
 
@@ -28,7 +51,7 @@ object PathT {
     ): F[Map[Point, List[Intersection]]] =
       for {
         sSteps <- collectShortStep(graph, settings.pathChunkSize)
-        sPaths <- buildShortestPaths(sSteps, graph.nodes, settings.pathChunkSize / 2) // g.e?
+        sPaths <- buildShortestPaths(sSteps, graph.nodes, settings.pathChunkSize / 2)
       } yield sPaths
 
     private def collectShortStep(
@@ -48,8 +71,8 @@ object PathT {
         chunk <- _
         chunkD = chunk.map(x => (x, Dijkstra(graph, x))).toList
         o <- Stream.emits(chunkD.map { case (s, d) =>
-               val ss = d.shortestPath(
-                 ShortStep(unProcessed = graph.vertices.toSet, distances = d.sDistances)
+               val ss = d.shortestPathTRec(
+                 ShortStep(unProcessed = graph.nodes.toSet, transitTimes = d.sTransitTimes)
                )
                (s, ss)
              })
@@ -82,7 +105,7 @@ object PathT {
       sourceNode: SourceNode
     ): List[(Point, List[Intersection])] =
       nodes.map { node =>
-        val bestestPath = extractSPaths(node, shortStep.parents).reverse
+        val bestestPath = extractSPathsTRec(sourceNode, Intersection.empty, node, shortStep.parents)
         (Point(sourceNode, node), bestestPath)
       }
 

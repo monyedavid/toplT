@@ -1,11 +1,10 @@
 package org.topl.traffic.protocol.models
 
-import org.scalatest.TryValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 import org.topl.traffic.commonGenerators.forSingleInstance
 import org.topl.traffic.protocol.models.Intersection.RichInterSection
-import org.topl.traffic.protocol.models.generators.{emptyGraphGen, testGraphGen}
+import org.topl.traffic.protocol.models.generators.emptyGraphGen
 
 class GraphSpec extends AnyFlatSpec with should.Matchers {
 
