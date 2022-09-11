@@ -1,6 +1,6 @@
 package org.topl.traffic.cli
 
-import cats.effect.{ConcurrentEffect, Sync}
+import cats.effect.ConcurrentEffect
 import cats.effect.concurrent.Ref
 import org.http4s.client.Client
 import org.topl.traffic.cli.Execute.executeCommands

@@ -8,7 +8,7 @@ import org.scalatest.matchers.should
 import org.topl.traffic.algorithm.PathT.SourceNode
 import org.topl.traffic.algorithm.PathTSpec.withResources
 import org.topl.traffic.commonGenerators.forSingleInstance
-import org.topl.traffic.protocol.models.{Intersection, Point, WeightedEdge}
+import org.topl.traffic.protocol.models.{Intersection, Point, Result, WeightedEdge}
 import org.topl.traffic.protocol.models.generators.testGraphGen
 import org.topl.traffic.settings.ServiceSettings
 import tofu.fs2Instances._
@@ -128,7 +128,7 @@ class PathTSpec extends AnyFlatSpec with should.Matchers with TryValues with Pri
     val pathT            = PathT[IO]
     val collectShortStep = PrivateMethod[IO[List[(SourceNode, ShortStep[Intersection])]]]('collectShortStep)
     val buildShortestPathFromStartNode =
-      PrivateMethod[List[(Point, List[Intersection])]]('buildShortestPathFromStartNode)
+      PrivateMethod[List[(Point, Result[Intersection])]]('buildShortestPathFromStartNode)
     withResources[IO]
       .use { case ServiceSettings(_, pathChunkSize) =>
         forSingleInstance(testGraphGen) { tG =>
@@ -137,44 +137,51 @@ class PathTSpec extends AnyFlatSpec with should.Matchers with TryValues with Pri
 
           val o = pathT invokePrivate buildShortestPathFromStartNode(m1Step, tG.vertices, sourceNode)
 
-          o should contain theSameElementsAs (
-            List(
-              (
-                Point(Intersection("M", "1"), Intersection("G", "1")),
-                List(Intersection("M", "1"), Intersection("G", "1"))
-              ),
-              (Point(Intersection("M", "1"), Intersection("M", "1")), List(Intersection("M", "1"))),
-              (
-                Point(Intersection("M", "1"), Intersection("S", "1")),
-                List(Intersection("M", "1"), Intersection("J", "1"), Intersection("D", "1"), Intersection("S", "1"))
-              ),
-              (
-                Point(Intersection("M", "1"), Intersection("B", "1")),
-                List(Intersection("M", "1"), Intersection("B", "1"))
-              ),
-              (
-                Point(Intersection("M", "1"), Intersection("J", "1")),
-                List(Intersection("M", "1"), Intersection("J", "1"))
-              ),
-              (
-                Point(Intersection("M", "1"), Intersection("K", "2")),
-                List(Intersection("M", "1"), Intersection("J", "1"), Intersection("K", "2"))
-              ),
-              (
-                Point(Intersection("M", "1"), Intersection("C", "2")),
-                List(Intersection("M", "1"), Intersection("G", "1"), Intersection("C", "2"))
-              ),
-              (
-                Point(Intersection("M", "1"), Intersection("C", "1")),
-                List(Intersection("M", "1"), Intersection("G", "1"), Intersection("C", "2"), Intersection("C", "1"))
-              ),
-              (
-                Point(Intersection("M", "1"), Intersection("D", "1")),
-                List(Intersection("M", "1"), Intersection("J", "1"), Intersection("D", "1"))
-              ),
-              (
-                Point(Intersection("M", "1"), Intersection("D", "2")),
-                List(Intersection("M", "1"), Intersection("J", "1"), Intersection("K", "2"), Intersection("D", "2"))
+          o should contain theSameElementsAs List(
+            (
+              Point("M1".fromStringUnsafe, "G1".fromStringUnsafe),
+              Result(List("M1".fromStringUnsafe, "G1".fromStringUnsafe), 60.0)
+            ),
+            (Point("M1".fromStringUnsafe, "M1".fromStringUnsafe), Result(List("M1".fromStringUnsafe), 0.0)),
+            (
+              Point("M1".fromStringUnsafe, "S1".fromStringUnsafe),
+              Result(
+                List("M1".fromStringUnsafe, "J1".fromStringUnsafe, "D1".fromStringUnsafe, "S1".fromStringUnsafe),
+                690.0
+              )
+            ),
+            (
+              Point("M1".fromStringUnsafe, "B1".fromStringUnsafe),
+              Result(List("M1".fromStringUnsafe, "B1".fromStringUnsafe), 250.0)
+            ),
+            (
+              Point("M1".fromStringUnsafe, "J1".fromStringUnsafe),
+              Result(List("M1".fromStringUnsafe, "J1".fromStringUnsafe), 50.0)
+            ),
+            (
+              Point("M1".fromStringUnsafe, "K2".fromStringUnsafe),
+              Result(List("M1".fromStringUnsafe, "J1".fromStringUnsafe, "K2".fromStringUnsafe), 290.0)
+            ),
+            (
+              Point("M1".fromStringUnsafe, "C2".fromStringUnsafe),
+              Result(List("M1".fromStringUnsafe, "G1".fromStringUnsafe, "C2".fromStringUnsafe), 140.0)
+            ),
+            (
+              Point("M1".fromStringUnsafe, "C1".fromStringUnsafe),
+              Result(
+                List("M1".fromStringUnsafe, "G1".fromStringUnsafe, "C2".fromStringUnsafe, "C1".fromStringUnsafe),
+                260.0
+              )
+            ),
+            (
+              Point("M1".fromStringUnsafe, "D1".fromStringUnsafe),
+              Result(List("M1".fromStringUnsafe, "J1".fromStringUnsafe, "D1".fromStringUnsafe), 210.0)
+            ),
+            (
+              Point("M1".fromStringUnsafe, "D2".fromStringUnsafe),
+              Result(
+                List("M1".fromStringUnsafe, "J1".fromStringUnsafe, "K2".fromStringUnsafe, "D2".fromStringUnsafe),
+                620.0
               )
             )
           )

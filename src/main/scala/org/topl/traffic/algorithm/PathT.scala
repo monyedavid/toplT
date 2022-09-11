@@ -2,7 +2,7 @@ package org.topl.traffic.algorithm
 
 import cats.Monad
 import fs2.{Chunk, Pipe, Stream}
-import org.topl.traffic.protocol.models.{Intersection, Point, WeightedGraph}
+import org.topl.traffic.protocol.models.{Intersection, Point, Result, WeightedGraph}
 import org.topl.traffic.settings.ServiceSettings
 import org.topl.traffic.streaming.CompileStream
 import tofu.syntax.monadic._
@@ -12,7 +12,7 @@ import scala.annotation.tailrec
 
 // Transforms: Graph[InterSection] => shortest-path map for all vertices in graph
 trait PathT[F[_], V, W] {
-  def findShortestPath(graph: WeightedGraph[V], settings: ServiceSettings): F[Map[W, List[V]]]
+  def findShortestPath(graph: WeightedGraph[V], settings: ServiceSettings): F[Map[W, Result[V]]]
 }
 
 object PathT {
@@ -42,7 +42,7 @@ object PathT {
     override def findShortestPath(
       graph: WeightedGraph[Intersection],
       settings: ServiceSettings
-    ): F[Map[Point, List[Intersection]]] =
+    ): F[Map[Point, Result[Intersection]]] =
       for {
         sSteps <- collectShortStep(graph, settings.pathChunkSize)
         sPaths <- buildShortestPaths(sSteps, graph.nodes, settings.pathChunkSize / 2)
@@ -76,7 +76,7 @@ object PathT {
       sSteps: List[(SourceNode, ShortStep[Intersection])],
       nodes: List[Intersection],
       pathChunkSize: Int
-    ): F[Map[Point, List[Intersection]]] =
+    ): F[Map[Point, Result[Intersection]]] =
       Stream
         .emits(sSteps)
         .chunkN(pathChunkSize)
@@ -86,7 +86,7 @@ object PathT {
 
     private def mkShortPath(
       nodes: List[Intersection]
-    ): Pipe[F, Chunk[(SourceNode, ShortStep[Intersection])], (Point, List[Intersection])] =
+    ): Pipe[F, Chunk[(SourceNode, ShortStep[Intersection])], (Point, Result[Intersection])] =
       for {
         chunk <- _
         chunkL = chunk.toList
@@ -97,11 +97,14 @@ object PathT {
       shortStep: ShortStep[Intersection],
       nodes: List[Intersection],
       sourceNode: SourceNode
-    ): List[(Point, List[Intersection])] =
+    ): List[(Point, Result[Intersection])] = {
+      import cats.implicits._
       nodes.map { node =>
         val bestestPath = extractSPathsTRec(sourceNode, Intersection.empty, node, shortStep.parents)
-        (Point(sourceNode, node), bestestPath)
+        val bestestTime = bestestPath.map(shortStep.transitTimes.get).sequence.map(_.sum).getOrElse(0.0)
+        (Point(sourceNode, node), Result(bestestPath, bestestTime))
       }
+    }
 
   }
 }
