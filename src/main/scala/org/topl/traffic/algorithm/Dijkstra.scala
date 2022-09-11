@@ -14,7 +14,6 @@ class Dijkstra[V](graph: WeightedGraph[V], sourceNode: V) {
   // shortestPathTailRec :)
   // this will build the best shortest path for nodes in graph with a source node as starting point
   // actual Paths may not exist between a given source-node & a destination node
-  // TODO: MAKE TAIL RECURSIVE
   @tailrec
   final def shortestPathTRec(step: ShortStep[V]): ShortStep[V] =
     // step:1  => get min in unprocessed set

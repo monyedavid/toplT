@@ -19,12 +19,6 @@ object PathT {
 
   type SourceNode = Intersection
 
-  // TODO: MAKE TAIL RECURSIVE
-  // TODO: Handle errors that occur in extracting shortestPath :)
-  //                extractSPaths: {destinationNode} -> {SourceNode}
-  //                - if there is no link between a destinationNode and a possible parentNode; end operation { return an empty List() }
-  //                      - end operation when parentNode == SourceNode :) ☑️
-
   @tailrec
   final def extractSPathsTRec[V](
     primeSourceNode: V,
