@@ -2,7 +2,7 @@ package org.topl.traffic.protocol.models
 
 import derevo.circe.{decoder, encoder}
 import derevo.derive
-import io.circe.Decoder.Result
+import io.circe.Decoder
 import io.circe.Json
 /*
    trafficMeasurements:
@@ -24,6 +24,6 @@ final case class TrafficData(trafficMeasurements: List[TrafficMeasurements])
 
 object TrafficData {
 
-  def fromJson(j: Json): Result[TrafficData] = j.as[TrafficData]
+  def fromJson(j: Json): Decoder.Result[TrafficData] = j.as[TrafficData]
 
 }
