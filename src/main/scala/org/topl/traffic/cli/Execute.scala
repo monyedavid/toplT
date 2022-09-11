@@ -43,8 +43,8 @@ object Execute {
       trafficData   <- EitherT(JsonReader[F, Either[Throwable, *]](jSource, client, getFile).read)
       weightedGraph <- EitherT.right(GraphT[F].mkGraph(trafficData, settings))
       shortestPaths <- EitherT.right(PathT[F].findShortestPath(weightedGraph, settings))
-      _ = applicationState.update(_ => State(Some(sourceS), shortestPaths)) // update state :)
-      state <- EitherT.right(applicationState.get)
+      _             <- EitherT.right(applicationState.update(_ => State(Some(sourceS), shortestPaths))) // update state :)
+      state         <- EitherT.right(applicationState.get)
     } yield state.getShortestPath(point)
 
   def executeCommands[F[_]: ConcurrentEffect: Monad: CompileStream](
