@@ -5,11 +5,13 @@ import cats.effect.{IO, Resource}
 import org.scalatest.{PrivateMethodTester, TryValues}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
+import org.topl.traffic.algorithm.PathT.SourceNode
 import org.topl.traffic.algorithm.PathTSpec.withResources
 import org.topl.traffic.commonGenerators.forSingleInstance
-import org.topl.traffic.protocol.models.{Intersection, WeightedEdge}
+import org.topl.traffic.protocol.models.{Intersection, Point, WeightedEdge}
 import org.topl.traffic.protocol.models.generators.testGraphGen
 import org.topl.traffic.settings.ServiceSettings
+import tofu.fs2Instances._
 
 class PathTSpec extends AnyFlatSpec with should.Matchers with TryValues with PrivateMethodTester {
   "PathT" should "correctly generate shortest path from source node to given nodes via private method 'extractSPathsTRec' " in {
@@ -79,10 +81,105 @@ class PathTSpec extends AnyFlatSpec with should.Matchers with TryValues with Pri
     }
   }
 
-  it should "correctly collect shortStep for a source - node" in {
+  it should "collect shortStep for every node in graph via stream" in {
+    import Intersection._
+    val pathT            = PathT[IO]
+    val collectShortStep = PrivateMethod[IO[List[(SourceNode, ShortStep[Intersection])]]]('collectShortStep)
     withResources[IO]
-      .use { s =>
-        forSingleInstance(testGraphGen) { tG => }
+      .use { case ServiceSettings(_, pathChunkSize) =>
+        forSingleInstance(testGraphGen) { tG =>
+          val sSteps = (pathT invokePrivate collectShortStep(tG, pathChunkSize)).unsafeRunSync()
+          val m1Step = sSteps.find(p => p._1 == "M1".fromStringUnsafe).map(_._2).get
+
+          m1Step.unProcessed should be(Set[Intersection]())
+          m1Step.parents.toList should contain theSameElementsAs Map(
+            "G1".fromStringUnsafe -> "M1".fromStringUnsafe,
+            "B1".fromStringUnsafe -> "M1".fromStringUnsafe,
+            "K2".fromStringUnsafe -> "J1".fromStringUnsafe,
+            "D1".fromStringUnsafe -> "J1".fromStringUnsafe,
+            "S1".fromStringUnsafe -> "D1".fromStringUnsafe,
+            "J1".fromStringUnsafe -> "M1".fromStringUnsafe,
+            "C2".fromStringUnsafe -> "G1".fromStringUnsafe,
+            "C1".fromStringUnsafe -> "C2".fromStringUnsafe,
+            "D2".fromStringUnsafe -> "K2".fromStringUnsafe
+          ).toList
+          m1Step.transitTimes.toList should contain theSameElementsAs Map[Intersection, Double](
+            "G1".fromStringUnsafe -> 60,
+            "B1".fromStringUnsafe -> 250,
+            "K2".fromStringUnsafe -> 240,
+            "D1".fromStringUnsafe -> 160,
+            "M1".fromStringUnsafe -> 0,
+            "S1".fromStringUnsafe -> 480,
+            "J1".fromStringUnsafe -> 50,
+            "C2".fromStringUnsafe -> 80,
+            "C1".fromStringUnsafe -> 120,
+            "D2".fromStringUnsafe -> 330
+          ).toList
+
+        }
+        IO.unit
+      }
+      .unsafeRunSync()
+  }
+
+  it should "build shortest path from given start node, shortStep & destination nodes" in {
+    import Intersection._
+    val sourceNode       = "M1".fromStringUnsafe
+    val pathT            = PathT[IO]
+    val collectShortStep = PrivateMethod[IO[List[(SourceNode, ShortStep[Intersection])]]]('collectShortStep)
+    val buildShortestPathFromStartNode =
+      PrivateMethod[List[(Point, List[Intersection])]]('buildShortestPathFromStartNode)
+    withResources[IO]
+      .use { case ServiceSettings(_, pathChunkSize) =>
+        forSingleInstance(testGraphGen) { tG =>
+          val sSteps = (pathT invokePrivate collectShortStep(tG, pathChunkSize)).unsafeRunSync()
+          val m1Step = sSteps.find(p => p._1 == sourceNode).map(_._2).get
+
+          val o = pathT invokePrivate buildShortestPathFromStartNode(m1Step, tG.vertices, sourceNode)
+
+          o should contain theSameElementsAs (
+            List(
+              (
+                Point(Intersection("M", "1"), Intersection("G", "1")),
+                List(Intersection("M", "1"), Intersection("G", "1"))
+              ),
+              (Point(Intersection("M", "1"), Intersection("M", "1")), List(Intersection("M", "1"))),
+              (
+                Point(Intersection("M", "1"), Intersection("S", "1")),
+                List(Intersection("M", "1"), Intersection("J", "1"), Intersection("D", "1"), Intersection("S", "1"))
+              ),
+              (
+                Point(Intersection("M", "1"), Intersection("B", "1")),
+                List(Intersection("M", "1"), Intersection("B", "1"))
+              ),
+              (
+                Point(Intersection("M", "1"), Intersection("J", "1")),
+                List(Intersection("M", "1"), Intersection("J", "1"))
+              ),
+              (
+                Point(Intersection("M", "1"), Intersection("K", "2")),
+                List(Intersection("M", "1"), Intersection("J", "1"), Intersection("K", "2"))
+              ),
+              (
+                Point(Intersection("M", "1"), Intersection("C", "2")),
+                List(Intersection("M", "1"), Intersection("G", "1"), Intersection("C", "2"))
+              ),
+              (
+                Point(Intersection("M", "1"), Intersection("C", "1")),
+                List(Intersection("M", "1"), Intersection("G", "1"), Intersection("C", "2"), Intersection("C", "1"))
+              ),
+              (
+                Point(Intersection("M", "1"), Intersection("D", "1")),
+                List(Intersection("M", "1"), Intersection("J", "1"), Intersection("D", "1"))
+              ),
+              (
+                Point(Intersection("M", "1"), Intersection("D", "2")),
+                List(Intersection("M", "1"), Intersection("J", "1"), Intersection("K", "2"), Intersection("D", "2"))
+              )
+            )
+          )
+
+        }
         IO.unit
       }
       .unsafeRunSync()
