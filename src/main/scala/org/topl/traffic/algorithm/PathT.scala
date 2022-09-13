@@ -45,7 +45,7 @@ object PathT {
     ): F[Map[Point, Result[Intersection]]] =
       for {
         sSteps <- collectShortStep(graph, settings.pathChunkSize)
-        sPaths <- buildShortestPaths(sSteps, graph.nodes, settings.pathChunkSize / 2)
+        sPaths <- buildShortestPaths(sSteps, graph.vertices, settings.pathChunkSize / 2)
       } yield sPaths
 
     private def collectShortStep(
@@ -53,7 +53,7 @@ object PathT {
       pathChunkSize: Int
     ): F[List[(SourceNode, ShortStep[Intersection])]] =
       Stream
-        .emits[F, Intersection](graph.nodes)
+        .emits[F, Intersection](graph.vertices)
         .chunkN(pathChunkSize)
         .through(mkShortStep(graph))
         .to[List]
@@ -66,7 +66,7 @@ object PathT {
         chunkD = chunk.map(x => (x, Dijkstra(graph, x))).toList
         o <- Stream.emits(chunkD.map { case (s, d) =>
                val ss = d.shortestPathTRec(
-                 ShortStep(unProcessed = graph.nodes.toSet, transitTimes = d.sTransitTimes)
+                 ShortStep(unProcessed = graph.vertices.toSet, transitTimes = d.sTransitTimes)
                )
                (s, ss)
              })
