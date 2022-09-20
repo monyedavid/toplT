@@ -21,7 +21,7 @@ class JsonReaderSpec extends AnyFlatSpec with should.Matchers with TryValues {
   implicit val cs: ContextShift[IO]          = IO.contextShift(ec)
   implicit val timer: Timer[IO]              = IO.timer(ec)
   val testServerUrl                          = "http://localhost:3000"
-  val testFilePath                           = ""
+  val testFilePath                           = "/Users/bot/Desktop/void/com.github/toplT/src/test/resources/test-sample-data.json"
 
   "Json reader" should "read data correctly from files" in {
     withResources[IO](ec)

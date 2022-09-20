@@ -1,0 +1,152 @@
+{
+  "trafficMeasurements": [
+    {
+      "measurementTime": 83452,
+      "measurements": [
+        {
+          "startAvenue": "M",
+          "startStreet": "1",
+          "transitTime": 60,
+          "endAvenue": "G",
+          "endStreet": "1"
+        },
+        {
+          "startAvenue": "M",
+          "startStreet": "1",
+          "transitTime": 160,
+          "endAvenue": "C",
+          "endStreet": "1"
+        },
+        {
+          "startAvenue": "M",
+          "startStreet": "1",
+          "transitTime": 170,
+          "endAvenue": "D",
+          "endStreet": "1"
+        },
+        {
+          "startAvenue": "M",
+          "startStreet": "1",
+          "transitTime": 50,
+          "endAvenue": "J",
+          "endStreet": "1"
+        },
+        {
+          "startAvenue": "M",
+          "startStreet": "1",
+          "transitTime": 250,
+          "endAvenue": "B",
+          "endStreet": "1"
+        },
+        {
+          "startAvenue": "M",
+          "startStreet": "1",
+          "transitTime": 360,
+          "endAvenue": "D",
+          "endStreet": "2"
+        }
+      ]
+    },
+    {
+      "measurementTime": 83453,
+      "measurements": [
+        {
+          "startAvenue": "G",
+          "startStreet": "1",
+          "transitTime": 20,
+          "endAvenue": "C",
+          "endStreet": "2"
+        },
+        {
+          "startAvenue": "C",
+          "startStreet": "2",
+          "transitTime": 40,
+          "endAvenue": "C",
+          "endStreet": "1"
+        },
+        {
+          "startAvenue": "C",
+          "startStreet": "1",
+          "transitTime": 210,
+          "endAvenue": "C",
+          "endStreet": "1"
+        },
+        {
+          "startAvenue": "D",
+          "startStreet": "1",
+          "transitTime": 320,
+          "endAvenue": "S",
+          "endStreet": "1"
+        },
+        {
+          "startAvenue": "S",
+          "startStreet": "1",
+          "transitTime": 210,
+          "endAvenue": "B",
+          "endStreet": "1"
+        },
+        {
+          "startAvenue": "B",
+          "startStreet": "1",
+          "transitTime": 260,
+          "endAvenue": "S",
+          "endStreet": "1"
+        }
+      ]
+    },
+    {
+      "measurementTime": 83454,
+      "measurements": [
+        {
+          "startAvenue": "B",
+          "startStreet": "1",
+          "transitTime": 90,
+          "endAvenue": "D",
+          "endStreet": "2"
+        },
+        {
+          "startAvenue": "D",
+          "startStreet": "2",
+          "transitTime": 140,
+          "endAvenue": "B",
+          "endStreet": "1"
+        },
+        {
+          "startAvenue": "J",
+          "startStreet": "1",
+          "transitTime": 110,
+          "endAvenue": "D",
+          "endStreet": "1"
+        },
+        {
+          "startAvenue": "J",
+          "startStreet": "1",
+          "transitTime": 110,
+          "endAvenue": "D",
+          "endStreet": "1"
+        },
+        {
+          "startAvenue": "J",
+          "startStreet": "1",
+          "transitTime": 190,
+          "endAvenue": "K",
+          "endStreet": "2"
+        },
+        {
+          "startAvenue": "K",
+          "startStreet": "2",
+          "transitTime": 160,
+          "endAvenue": "J",
+          "endStreet": "1"
+        },
+        {
+          "startAvenue": "K",
+          "startStreet": "2",
+          "transitTime": 90,
+          "endAvenue": "D",
+          "endStreet": "2"
+        }
+      ]
+    }
+  ]
+}
