@@ -14,6 +14,6 @@ object PointParser {
       val iP      = IntersectionParser[G]
       if (pointsS.length == 2) {
         (iP.fromString(pointsS(0)), iP.fromString(pointsS(1))).mapN(Point)
-      } else G.raiseError(new Exception("incorrect argument giving for an intersection"))
+      } else G.raiseError(new Exception(s"incorrect argument giving for point: $s"))
     }
 }
