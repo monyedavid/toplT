@@ -16,6 +16,7 @@ class IntersectionParserSpec extends AnyFlatSpec with should.Matchers with TryVa
 
     ip.fromString("A1") should be(Success(Intersection(avenue = "A", street = "1")))
     ip.fromString("Z1") should be(Success(Intersection(avenue = "Z", street = "1")))
+    ip.fromString("T19") should be(Success(Intersection(avenue = "T", street = "19")))
   }
 
   it should "fail on wrong string format" in {

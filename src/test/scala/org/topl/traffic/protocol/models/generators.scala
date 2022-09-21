@@ -6,14 +6,20 @@ import Intersection._
 
 object generators {
 
+  def intersectiongen: Gen[Intersection] =
+    for {
+      avenue <- Gen.alphaLowerStr
+      street <- Gen.posNum[Int]
+    } yield Intersection(avenue, street.toString)
+
   def measurementGen: Gen[Measurement] =
     for {
       startAvenue <- Gen.alphaLowerStr
-      startStreet <- Gen.alphaLowerStr
+      startStreet <- Gen.posNum[Int]
       transitTime <- Gen.posNum[Double]
       endAvenue   <- Gen.alphaLowerStr
       endStreet   <- Gen.alphaLowerStr
-    } yield Measurement(startAvenue, startStreet, transitTime, endAvenue, endStreet)
+    } yield Measurement(startAvenue, startStreet.toString, transitTime, endAvenue, endStreet)
 
   def trafficMeasurementGen(length: Int): Gen[TrafficMeasurements] =
     for {
